@@ -1,0 +1,100 @@
+<!-- catalogo.page.html · Semana 02 · Componentes de interfaz y eventos -->
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <!-- Botón "Atrás": vuelve a la pantalla anterior (o a /inicio si no hay historial) -->
+      <ion-back-button defaultHref="/inicio"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Catálogo</ion-title>
+  </ion-toolbar>
+  <ion-toolbar>
+    <!-- EVENTO (ionInput): cada tecla llama a alBuscar($event) · debounce: espera 250 ms -->
+    <ion-searchbar placeholder="Buscar producto" [debounce]="250" (ionInput)="alBuscar($event)"></ion-searchbar>
+  </ion-toolbar>
+  <ion-toolbar>
+    <!-- EVENTO (ionChange): al elegir otro segmento -->
+    <ion-segment [value]="categoria()" (ionChange)="alCambiarCategoria($event)" [scrollable]="true">
+      <ion-segment-button value="Todas"><ion-label>Todas</ion-label></ion-segment-button>
+      @for (c of categorias; track c) {
+        <ion-segment-button [value]="c"><ion-label>{{ c }}</ion-label></ion-segment-button>
+      }
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <!-- Jalar hacia abajo para refrescar -->
+  <ion-refresher slot="fixed" (ionRefresh)="alRefrescar($event)">
+    <ion-refresher-content pullingText="Suelta para restablecer"></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- LAYOUT con grid: 12 columnas, como Bootstrap -->
+  <ion-grid>
+    <ion-row>
+      <ion-col size="4"><div class="dato"><strong>{{ filtrados().length }}</strong><span>productos</span></div></ion-col>
+      <ion-col size="4"><div class="dato"><strong>{{ totalStock() }}</strong><span>unidades</span></div></ion-col>
+      <ion-col size="4"><div class="dato"><strong>S/ {{ valorInventario().toFixed(0) }}</strong><span>en stock</span></div></ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <ion-list>
+    @for (p of filtrados(); track p.id) {
+      <!-- ion-item-sliding: desliza el ítem a la izquierda para ver opciones -->
+      <ion-item-sliding #deslizable>
+        <ion-item>
+          <ion-avatar slot="start" class="avatar" [class]="'cat-' + p.categoria">{{ iniciales(p.nombre) }}</ion-avatar>
+          <ion-label>
+            <h2>{{ p.nombre }} @if (p.destacado) { <ion-icon name="star" color="warning"></ion-icon> }</h2>
+            <p>{{ p.categoria }} · S/ {{ p.precio.toFixed(2) }}</p>
+          </ion-label>
+          <!-- Propiedad dinámica: el color depende del dato -->
+          <ion-badge slot="end" [color]="p.stock < 5 ? 'danger' : 'success'">{{ p.stock }}</ion-badge>
+          <ion-toggle slot="end" [checked]="p.destacado" (ionChange)="alternarDestacado(p)" aria-label="Destacado"></ion-toggle>
+        </ion-item>
+        <ion-item-options side="end">
+          <ion-item-option color="danger" (click)="pedirEliminar(p, deslizable)">
+            <ion-icon slot="icon-only" name="trash"></ion-icon>
+          </ion-item-option>
+        </ion-item-options>
+      </ion-item-sliding>
+    } @empty {
+      <ion-item><ion-label class="ion-text-center"><ion-note>No hay productos que coincidan.</ion-note></ion-label></ion-item>
+    }
+  </ion-list>
+
+  <!-- FAB: botón flotante (widget típico de Android) -->
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button color="tertiary" (click)="abrirModal()"><ion-icon name="add"></ion-icon></ion-fab-button>
+  </ion-fab>
+
+  <!-- MODAL con formulario. [isOpen] controla si se ve; (didDismiss) cuando se cierra -->
+  <ion-modal [isOpen]="modalAbierto" (didDismiss)="modalAbierto = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Nuevo producto</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="modalAbierto = false"><ion-icon slot="icon-only" name="close"></ion-icon></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding">
+        <ion-input label="Nombre" labelPlacement="stacked" fill="outline" [(ngModel)]="nuevo.nombre" placeholder="Ej.: Galletas soda"></ion-input>
+        <ion-select label="Categoría" labelPlacement="stacked" fill="outline" [(ngModel)]="nuevo.categoria" class="ion-margin-top">
+          @for (c of categorias; track c) { <ion-select-option [value]="c">{{ c }}</ion-select-option> }
+        </ion-select>
+        <ion-input label="Precio (S/)" labelPlacement="stacked" fill="outline" type="number" [(ngModel)]="nuevo.precio" class="ion-margin-top"></ion-input>
+        <ion-input label="Stock" labelPlacement="stacked" fill="outline" type="number" [(ngModel)]="nuevo.stock" class="ion-margin-top"></ion-input>
+        <ion-toggle [(ngModel)]="nuevo.destacado" class="ion-margin-top">Destacado</ion-toggle>
+        <ion-button expand="block" class="ion-margin-top" (click)="guardar()">
+          <ion-icon slot="start" name="save"></ion-icon> Guardar
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- ALERT de confirmación y TOAST de aviso -->
+  <ion-alert [isOpen]="porEliminar !== null" header="¿Eliminar producto?" [message]="porEliminar?.nombre ?? ''"
+             [buttons]="botonesAlerta" (didDismiss)="porEliminar = null"></ion-alert>
+  <ion-toast [isOpen]="toastAbierto" [message]="mensajeToast" [duration]="1800" position="bottom" (didDismiss)="toastAbierto = false"></ion-toast>
+</ion-content>

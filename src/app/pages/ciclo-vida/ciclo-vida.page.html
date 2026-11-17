@@ -1,0 +1,28 @@
+<!-- ciclo-vida.page.html · Observa en vivo cada momento de la vida de esta pantalla -->
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start"><ion-back-button defaultHref="/inicio"></ion-back-button></ion-buttons>
+    <ion-title>Ciclo de vida</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card class="tarjeta-pop">
+    <ion-card-content>
+      <p><strong>Experimento:</strong> ve al Catálogo y vuelve; luego minimiza el navegador o cambia de pestaña y regresa. Mira qué eventos aparecen y en qué orden.</p>
+      <ion-button size="small" routerLink="/catalogo">Ir al catálogo</ion-button>
+      <ion-button size="small" fill="outline" (click)="limpiar()">Limpiar</ion-button>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-list>
+    @for (e of eventos(); track $index) {
+      <ion-item>
+        <ion-badge slot="start" [color]="e.color">{{ eventos().length - $index }}</ion-badge>
+        <ion-label>{{ e.hook }}</ion-label>
+        <!-- DatePipe: da formato a la hora (HH:mm:ss.SSS = con milisegundos) -->
+        <ion-note slot="end">{{ e.hora | date: 'HH:mm:ss.SSS' }}</ion-note>
+      </ion-item>
+    }
+  </ion-list>
+</ion-content>

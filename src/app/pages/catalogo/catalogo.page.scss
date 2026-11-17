@@ -1,0 +1,17 @@
+/* Tarjetitas de resumen y avatares de colores por categoría */
+.dato {
+  background: var(--ion-color-light, #f4f0ff);
+  border-radius: 14px;
+  padding: 10px 6px;
+  text-align: center;
+  strong { display: block; font-size: 20px; color: var(--ion-color-primary); }
+  span { font-size: 12px; color: var(--ion-color-medium); }
+}
+.avatar {
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 14px; color: #fff;
+}
+.cat-Abarrotes { background: #7C3AED; }
+.cat-Bebidas   { background: #00B8A9; }
+.cat-Lácteos   { background: #FF5A5F; }
+.cat-Limpieza  { background: #FFC93C; color: #1F1147; }
